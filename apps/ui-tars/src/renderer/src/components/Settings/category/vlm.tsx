@@ -36,7 +36,7 @@ import { PresetImport, PresetBanner } from './preset';
 import { api } from '@/renderer/src/api';
 
 const formSchema = z.object({
-  vlmProvider: z.nativeEnum(VLMProviderV2, {
+  vlmProvider: z.string().min(1, {
     message: 'Please select a VLM Provider to enhance resolution',
   }),
   vlmBaseUrl: z.string().url(),
@@ -77,7 +77,7 @@ export function VLMSettings({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      vlmProvider: undefined,
+      vlmProvider: '',
       vlmBaseUrl: '',
       vlmApiKey: '',
       vlmModelName: '',
@@ -120,7 +120,7 @@ export function VLMSettings({
   };
 
   useEffect(() => {
-    if (newProvider === VLMProviderV2.ollama) {
+    if (newProvider === 'ollama') {
       fetchOllamaModels();
     }
   }, [newProvider]);
@@ -325,9 +325,9 @@ export function VLMSettings({
                       <SelectValue placeholder="Select VLM provider" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.values(VLMProviderV2).map((provider) => (
-                        <SelectItem key={provider} value={provider}>
-                          {provider}
+                      {Object.entries(VLMProviderV2).map(([key, value]) => (
+                        <SelectItem key={key} value={key}>
+                          {value}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -399,7 +399,7 @@ export function VLMSettings({
               <FormItem>
                 <FormLabel>VLM Model Name</FormLabel>
                 <FormControl>
-                  {newProvider === VLMProviderV2.ollama ? (
+                  {newProvider === 'ollama' ? (
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
@@ -443,7 +443,7 @@ export function VLMSettings({
           />
 
           {/* VLM Model Responses API - Hidden for Ollama */}
-          {newProvider !== VLMProviderV2.ollama && (
+          {newProvider !== 'ollama' && (
             <FormField
               control={form.control}
               name="useResponsesApi"
