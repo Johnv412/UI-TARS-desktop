@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# UI-TARS Desktop Application
+# This launches the UI-TARS application from the app bundle
+
+# Get the app bundle path
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
+echo "🚀 Starting UI-TARS Desktop from: $APP_DIR"
+
+# Open a new Terminal window and run the launch script
+osascript <<EOF
+tell application "Terminal"
+    do script "cd '$APP_DIR' && ./launch-ui-tars.sh"
+    activate
+end tell
+EOF

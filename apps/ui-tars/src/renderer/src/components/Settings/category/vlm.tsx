@@ -403,11 +403,17 @@ export function VLMSettings({
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
-                      disabled={isRemoteAutoUpdatedPreset || isLoadingOllamaModels}
+                      disabled={
+                        isRemoteAutoUpdatedPreset || isLoadingOllamaModels
+                      }
                     >
                       <SelectTrigger className="w-full bg-white">
-                        <SelectValue 
-                          placeholder={isLoadingOllamaModels ? "Loading models..." : "Select Ollama model"} 
+                        <SelectValue
+                          placeholder={
+                            isLoadingOllamaModels
+                              ? 'Loading models...'
+                              : 'Select Ollama model'
+                          }
                         />
                       </SelectTrigger>
                       <SelectContent>
