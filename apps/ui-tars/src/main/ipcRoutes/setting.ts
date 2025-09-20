@@ -57,4 +57,15 @@ export const settingRoute = t.router({
         throw e;
       }
     }),
+  fetchOllamaModels: t.procedure
+    .handle(async () => {
+      try {
+        const response = await fetch('http://localhost:11434/api/tags');
+        const data = await response.json();
+        return data.models.map((model: any) => model.name);
+      } catch (e) {
+        logger.warn('[fetchOllamaModels] failed:', e);
+        return [];
+      }
+    }),
 });

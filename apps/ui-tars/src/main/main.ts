@@ -57,16 +57,19 @@ const loadDevDebugTools = async () => {
   });
 
   import('electron-devtools-installer')
-    .then(({ default: installExtensionDefault, REACT_DEVELOPER_TOOLS }) => {
-      // @ts-ignore
-      const installExtension = installExtensionDefault?.default;
-      const extensions = [installExtension(REACT_DEVELOPER_TOOLS)];
+    .then(({ default: installExtension, REACT_DEVELOPER_TOOLS }) => {
+      if (typeof installExtension === 'function') {
+        const extensions = [installExtension(REACT_DEVELOPER_TOOLS)];
 
-      return Promise.all(extensions)
-        .then((names) => logger.info('Added Extensions:', names.join(', ')))
-        .catch((err) =>
-          logger.error('An error occurred adding extension:', err),
-        );
+        return Promise.all(extensions)
+          .then((names) => logger.info('Added Extensions:', names.join(', ')))
+          .catch((err) =>
+            logger.error('An error occurred adding extension:', err),
+          );
+      } else {
+        logger.warn('installExtension is not available');
+        return Promise.resolve();
+      }
     })
     .catch(logger.error);
 };

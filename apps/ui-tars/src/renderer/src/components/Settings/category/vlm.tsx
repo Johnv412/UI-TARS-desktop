@@ -67,6 +67,8 @@ export function VLMSettings({
     boolean | null
   >(null);
   const [isCheckingResponseApi, setIsCheckingResponseApi] = useState(false);
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
+  const [isLoadingOllamaModels, setIsLoadingOllamaModels] = useState(false);
 
   const isRemoteAutoUpdatedPreset =
     settings?.presetSource?.type === 'remote' &&
@@ -102,6 +104,26 @@ export function VLMSettings({
       'vlmModelName',
       'useResponsesApi',
     ]);
+
+  // Fetch Ollama models when provider changes to Ollama
+  const fetchOllamaModels = async () => {
+    setIsLoadingOllamaModels(true);
+    try {
+      const models = await api.settingRoute.fetchOllamaModels();
+      setOllamaModels(models);
+    } catch (error) {
+      console.error('Failed to fetch Ollama models:', error);
+      setOllamaModels([]);
+    } finally {
+      setIsLoadingOllamaModels(false);
+    }
+  };
+
+  useEffect(() => {
+    if (newProvider === VLMProviderV2.ollama) {
+      fetchOllamaModels();
+    }
+  }, [newProvider]);
 
   useEffect(() => {
     if (!autoSave) {
@@ -377,13 +399,35 @@ export function VLMSettings({
               <FormItem>
                 <FormLabel>VLM Model Name</FormLabel>
                 <FormControl>
-                  <Input
-                    className="bg-white"
-                    placeholder="Enter VLM Model Name"
-                    {...field}
-                    disabled={isRemoteAutoUpdatedPreset}
-                  />
+                  {newProvider === VLMProviderV2.ollama ? (
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isRemoteAutoUpdatedPreset || isLoadingOllamaModels}
+                    >
+                      <SelectTrigger className="w-full bg-white">
+                        <SelectValue 
+                          placeholder={isLoadingOllamaModels ? "Loading models..." : "Select Ollama model"} 
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ollamaModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      className="bg-white"
+                      placeholder="Enter VLM Model Name"
+                      {...field}
+                      disabled={isRemoteAutoUpdatedPreset}
+                    />
+                  )}
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -398,37 +442,39 @@ export function VLMSettings({
             onResponseApiSupportChange={setResponseApiSupported}
           />
 
-          {/* VLM Model Responses API */}
-          <FormField
-            control={form.control}
-            name="useResponsesApi"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Use Responses API</FormLabel>
-                <FormControl>
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={field.value}
-                      disabled={switchDisabled}
-                      onCheckedChange={handleResponseApiChange}
-                      className={cn(switchDisabled && '!cursor-not-allowed')}
-                    />
-                    {responseApiSupported === false && (
-                      <p className="text-sm text-red-500">
-                        Response API is not supported by this model
-                      </p>
-                    )}
-                    {isCheckingResponseApi && (
-                      <p className="text-sm text-muted-foreground flex items-center">
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        Checking Response API support...
-                      </p>
-                    )}
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          {/* VLM Model Responses API - Hidden for Ollama */}
+          {newProvider !== VLMProviderV2.ollama && (
+            <FormField
+              control={form.control}
+              name="useResponsesApi"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Use Responses API</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={field.value}
+                        disabled={switchDisabled}
+                        onCheckedChange={handleResponseApiChange}
+                        className={cn(switchDisabled && '!cursor-not-allowed')}
+                      />
+                      {responseApiSupported === false && (
+                        <p className="text-sm text-red-500">
+                          Response API is not supported by this model
+                        </p>
+                      )}
+                      {isCheckingResponseApi && (
+                        <p className="text-sm text-muted-foreground flex items-center">
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                          Checking Response API support...
+                        </p>
+                      )}
+                    </div>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
         </form>
       </Form>
 
