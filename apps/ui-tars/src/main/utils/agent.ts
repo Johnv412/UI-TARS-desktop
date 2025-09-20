@@ -2,7 +2,7 @@ import { UITarsModelVersion } from '@ui-tars/shared/constants';
 import {
   Operator,
   SearchEngineForSettings,
-  VLMProviderV2,
+  VlmProvider,
 } from '../store/types';
 import {
   getSystemPrompt,
@@ -21,17 +21,13 @@ import { hideMainWindow, showMainWindow } from '../window';
 import { SearchEngine } from '@ui-tars/operator-browser';
 
 export const getModelVersion = (
-  provider: VLMProviderV2 | undefined,
+  provider: VlmProvider | undefined,
 ): UITarsModelVersion => {
   switch (provider) {
-    case VLMProviderV2.ui_tars_1_5:
+    case 'anthropic':
+    case 'openai':
+    case 'ollama':
       return UITarsModelVersion.V1_5;
-    case VLMProviderV2.ui_tars_1_0:
-      return UITarsModelVersion.V1_0;
-    case VLMProviderV2.doubao_1_5:
-      return UITarsModelVersion.DOUBAO_1_5_15B;
-    case VLMProviderV2.doubao_1_5_vl:
-      return UITarsModelVersion.DOUBAO_1_5_20B;
     default:
       return UITarsModelVersion.V1_0;
   }

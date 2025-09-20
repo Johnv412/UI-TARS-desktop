@@ -70,6 +70,55 @@ export function VLMSettings({
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [isLoadingOllamaModels, setIsLoadingOllamaModels] = useState(false);
 
+  // Predefined models for each provider
+  const openaiModels = [
+    'gpt-4o',
+    'gpt-4o-mini', 
+    'gpt-4-turbo',
+    'gpt-4',
+    'gpt-3.5-turbo',
+    'o1-preview',
+    'o1-mini',
+  ];
+
+  const anthropicModels = [
+    'claude-3-5-sonnet-20241022',
+    'claude-3-5-haiku-20241022', 
+    'claude-3-opus-20240229',
+    'claude-3-sonnet-20240229',
+    'claude-3-haiku-20240307',
+  ];
+
+  // Provider default URLs and descriptions
+  const getProviderDefaults = (provider: string) => {
+    switch (provider) {
+      case 'ollama':
+        return {
+          baseUrl: 'http://localhost:11434/v1',
+          description: 'Local Ollama server (default port 11434)',
+          apiKeyRequired: false,
+        };
+      case 'openai':
+        return {
+          baseUrl: 'https://api.openai.com/v1',
+          description: 'Official OpenAI API',
+          apiKeyRequired: true,
+        };
+      case 'anthropic':
+        return {
+          baseUrl: 'https://api.anthropic.com',
+          description: 'Official Anthropic API',
+          apiKeyRequired: true,
+        };
+      default:
+        return {
+          baseUrl: '',
+          description: '',
+          apiKeyRequired: true,
+        };
+    }
+  };
+
   const isRemoteAutoUpdatedPreset =
     settings?.presetSource?.type === 'remote' &&
     settings.presetSource.autoUpdate;
@@ -104,6 +153,19 @@ export function VLMSettings({
       'vlmModelName',
       'useResponsesApi',
     ]);
+
+  // Auto-fill base URL when provider changes
+  useEffect(() => {
+    if (newProvider && newProvider !== settings.vlmProvider) {
+      const defaults = getProviderDefaults(newProvider);
+      form.setValue('vlmBaseUrl', defaults.baseUrl);
+      
+      // Clear API key for local providers like Ollama
+      if (!defaults.apiKeyRequired) {
+        form.setValue('vlmApiKey', '');
+      }
+    }
+  }, [newProvider, settings.vlmProvider, form]);
 
   // Fetch Ollama models when provider changes to Ollama
   const fetchOllamaModels = async () => {
@@ -347,11 +409,20 @@ export function VLMSettings({
                 <FormControl>
                   <Input
                     className="bg-white"
-                    placeholder="Enter VLM Base URL"
+                    placeholder={
+                      newProvider
+                        ? getProviderDefaults(newProvider).baseUrl || 'Enter VLM Base URL'
+                        : 'Enter VLM Base URL'
+                    }
                     {...field}
                     disabled={isRemoteAutoUpdatedPreset}
                   />
                 </FormControl>
+                {newProvider && (
+                  <p className="text-sm text-muted-foreground">
+                    {getProviderDefaults(newProvider).description}
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -360,36 +431,48 @@ export function VLMSettings({
           <FormField
             control={form.control}
             name="vlmApiKey"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>VLM API Key</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      className="bg-white"
-                      placeholder="Enter VLM API_Key"
-                      {...field}
-                      disabled={isRemoteAutoUpdatedPreset}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                      disabled={isRemoteAutoUpdatedPreset}
-                    >
-                      {showPassword ? (
-                        <Eye className="h-4 w-4 text-gray-500" />
-                      ) : (
-                        <EyeOff className="h-4 w-4 text-gray-500" />
-                      )}
-                    </Button>
-                  </div>
-                </FormControl>
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const providerDefaults = newProvider ? getProviderDefaults(newProvider) : { apiKeyRequired: true };
+              return (
+                <FormItem>
+                  <FormLabel>
+                    VLM API Key
+                    {!providerDefaults.apiKeyRequired && (
+                      <span className="text-sm text-muted-foreground ml-2">(Optional for local providers)</span>
+                    )}
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        className="bg-white"
+                        placeholder={
+                          providerDefaults.apiKeyRequired 
+                            ? 'Enter VLM API Key' 
+                            : 'Not required for local provider'
+                        }
+                        {...field}
+                        disabled={isRemoteAutoUpdatedPreset}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                        disabled={isRemoteAutoUpdatedPreset}
+                      >
+                        {showPassword ? (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                    </div>
+                  </FormControl>
+                </FormItem>
+              );
+            }}
           />
           {/* VLM Model Name */}
           <FormField
@@ -418,6 +501,40 @@ export function VLMSettings({
                       </SelectTrigger>
                       <SelectContent>
                         {ollamaModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : newProvider === 'openai' ? (
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isRemoteAutoUpdatedPreset}
+                    >
+                      <SelectTrigger className="w-full bg-white">
+                        <SelectValue placeholder="Select OpenAI model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {openaiModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : newProvider === 'anthropic' ? (
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isRemoteAutoUpdatedPreset}
+                    >
+                      <SelectTrigger className="w-full bg-white">
+                        <SelectValue placeholder="Select Claude model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {anthropicModels.map((model) => (
                           <SelectItem key={model} value={model}>
                             {model}
                           </SelectItem>

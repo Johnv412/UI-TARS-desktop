@@ -17,10 +17,12 @@ export const startMinimized = process.env.START_MINIMIZED;
 export const rendererUrl = process.env.ELECTRON_RENDERER_URL;
 export const isE2eTest = process.env.CI === 'e2e';
 
-export const vlmProvider = process.env.VLM_PROVIDER;
-export const vlmBaseUrl = process.env.VLM_BASE_URL;
-export const vlmApiKey = process.env.VLM_API_KEY;
-export const vlmModelName = process.env.VLM_MODEL_NAME;
+export const vlmProvider = process.env.VLM_PROVIDER ?? "ollama";
+export const vlmBaseUrl = process.env.VLM_BASE_URL ?? "http://localhost:11434/v1";
+export const vlmApiKey = process.env.VLM_API_KEY ?? "";
+export const vlmModelName = process.env.VLM_MODEL_NAME ?? "gemma2:2b";
+export const vlmTimeoutMs = Number(process.env.VLM_TIMEOUT_MS ?? 30000);
+
 
 const { platform } = process;
 export const isMacOS = platform === 'darwin';

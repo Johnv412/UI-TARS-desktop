@@ -11,7 +11,7 @@ import { logger } from '@main/logger';
 import {
   LocalStore,
   SearchEngineForSettings,
-  VLMProviderV2,
+  VlmProvider,
   Operator,
 } from './types';
 import { validatePreset } from './validate';
@@ -19,7 +19,7 @@ import { BrowserWindow } from 'electron';
 
 export const DEFAULT_SETTING: LocalStore = {
   language: 'en',
-  vlmProvider: (env.vlmProvider as VLMProviderV2) || '',
+  vlmProvider: (env.vlmProvider as VlmProvider) || '',
   vlmBaseUrl: env.vlmBaseUrl || '',
   vlmApiKey: env.vlmApiKey || '',
   vlmModelName: env.vlmModelName || '',

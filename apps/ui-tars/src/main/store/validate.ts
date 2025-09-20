@@ -4,7 +4,9 @@
  */
 import { z } from 'zod';
 
-import { SearchEngineForSettings, VLMProviderV2, Operator } from './types';
+import { SearchEngineForSettings, Operator } from './types';
+
+const VLMProviderSchema = z.enum(['ollama', 'anthropic', 'openai'] as const);
 
 const PresetSourceSchema = z.object({
   type: z.enum(['local', 'remote']),
@@ -15,10 +17,11 @@ const PresetSourceSchema = z.object({
 
 export const PresetSchema = z.object({
   // Local VLM Settings
-  vlmProvider: z.nativeEnum(VLMProviderV2).optional(),
+  vlmProvider: VLMProviderSchema.optional(),
   vlmBaseUrl: z.string().url(),
   vlmApiKey: z.string().min(1),
   vlmModelName: z.string().min(1),
+  vlmTimeoutMs: z.number().min(1000).max(300000).default(30000),
   useResponsesApi: z.boolean().optional(),
 
   // Chat Settings

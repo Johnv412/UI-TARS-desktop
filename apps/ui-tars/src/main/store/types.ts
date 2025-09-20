@@ -35,19 +35,19 @@ export type AppState = {
   browserAvailable: boolean;
 };
 
-export enum VlmProvider {
-  // Ollama = 'ollama',
-  Huggingface = 'Hugging Face',
-  vLLM = 'vLLM',
-}
+export const VLM_PROVIDER_LABELS = {
+  ollama: 'Ollama (local)',
+  anthropic: 'Anthropic (Claude)',
+  openai: 'OpenAI (ChatGPT)',
+} as const;
 
-export enum VLMProviderV2 {
-  ui_tars_1_0 = 'Hugging Face for UI-TARS-1.0',
-  ui_tars_1_5 = 'Hugging Face for UI-TARS-1.5',
-  doubao_1_5 = 'VolcEngine Ark for Doubao-1.5-UI-TARS',
-  doubao_1_5_vl = 'VolcEngine Ark for Doubao-1.5-thinking-vision-pro',
-  ollama = 'Ollama',
-}
+export type VlmProvider = keyof typeof VLM_PROVIDER_LABELS;
+export const VLM_PROVIDER_VALUES = Object.keys(
+  VLM_PROVIDER_LABELS,
+) as VlmProvider[];
+
+// For backward compatibility with UI
+export const VLMProviderV2 = VLM_PROVIDER_LABELS;
 
 export enum SearchEngineForSettings {
   GOOGLE = 'google',
