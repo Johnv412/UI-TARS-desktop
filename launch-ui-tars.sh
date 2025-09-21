@@ -26,7 +26,8 @@ pkill -f "electron.*ui-tars" || true
 
 # Start the app
 echo "✨ Launching UI-TARS..."
-pnpm --filter ui-tars-desktop run dev
+cd "$SCRIPT_DIR/apps/ui-tars"
+pnpm run dev
 
 # Keep the terminal open if there's an error
 if [ $? -ne 0 ]; then
