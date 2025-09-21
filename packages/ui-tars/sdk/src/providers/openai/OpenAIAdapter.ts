@@ -185,10 +185,6 @@ export class OpenAIAdapter implements ProviderAdapter {
       model,
       messages,
       stream: false,
-      seed: null,
-      stop: null,
-      frequency_penalty: null,
-      presence_penalty: null,
       // custom options
       max_tokens,
       temperature,

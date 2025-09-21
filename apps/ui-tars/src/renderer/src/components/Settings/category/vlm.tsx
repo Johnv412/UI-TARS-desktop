@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 import { VLMProviderV2 } from '@main/store/types';
 import { useSetting } from '@renderer/hooks/useSetting';
+import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import {
   Form,
@@ -33,7 +34,6 @@ import { Alert, AlertDescription } from '@renderer/components/ui/alert';
 import { cn } from '@renderer/utils';
 
 import { PresetImport, PresetBanner } from './preset';
-import { api } from '@/renderer/src/api';
 
 const formSchema = z.object({
   vlmProvider: z.string().min(1, {
@@ -73,7 +73,7 @@ export function VLMSettings({
   // Predefined models for each provider
   const openaiModels = [
     'gpt-4o',
-    'gpt-4o-mini', 
+    'gpt-4o-mini',
     'gpt-4-turbo',
     'gpt-4',
     'gpt-3.5-turbo',
@@ -83,7 +83,7 @@ export function VLMSettings({
 
   const anthropicModels = [
     'claude-3-5-sonnet-20241022',
-    'claude-3-5-haiku-20241022', 
+    'claude-3-5-haiku-20241022',
     'claude-3-opus-20240229',
     'claude-3-sonnet-20240229',
     'claude-3-haiku-20240307',
@@ -159,7 +159,7 @@ export function VLMSettings({
     if (newProvider && newProvider !== settings.vlmProvider) {
       const defaults = getProviderDefaults(newProvider);
       form.setValue('vlmBaseUrl', defaults.baseUrl);
-      
+
       // Clear API key for local providers like Ollama
       if (!defaults.apiKeyRequired) {
         form.setValue('vlmApiKey', '');
@@ -167,22 +167,21 @@ export function VLMSettings({
     }
   }, [newProvider, settings.vlmProvider, form]);
 
-  // Fetch Ollama models when provider changes to Ollama
-  const fetchOllamaModels = async () => {
-    setIsLoadingOllamaModels(true);
-    try {
-      const models = await api.settingRoute.fetchOllamaModels();
-      setOllamaModels(models);
-    } catch (error) {
-      console.error('Failed to fetch Ollama models:', error);
-      setOllamaModels([]);
-    } finally {
-      setIsLoadingOllamaModels(false);
-    }
-  };
-
   useEffect(() => {
     if (newProvider === 'ollama') {
+      const fetchOllamaModels = async () => {
+        setIsLoadingOllamaModels(true);
+        try {
+          const models = await api.settingRoute.fetchOllamaModels();
+          setOllamaModels(models);
+        } catch (error) {
+          console.error('Failed to fetch Ollama models:', error);
+          setOllamaModels([]);
+        } finally {
+          setIsLoadingOllamaModels(false);
+        }
+      };
+
       fetchOllamaModels();
     }
   }, [newProvider]);
@@ -247,8 +246,6 @@ export function VLMSettings({
     newApiKey,
     newModelName,
     newUseResponsesApi,
-    settings,
-    updateSetting,
     form,
     isRemoteAutoUpdatedPreset,
   ]);
@@ -411,7 +408,8 @@ export function VLMSettings({
                     className="bg-white"
                     placeholder={
                       newProvider
-                        ? getProviderDefaults(newProvider).baseUrl || 'Enter VLM Base URL'
+                        ? getProviderDefaults(newProvider).baseUrl ||
+                          'Enter VLM Base URL'
                         : 'Enter VLM Base URL'
                     }
                     {...field}
@@ -432,13 +430,17 @@ export function VLMSettings({
             control={form.control}
             name="vlmApiKey"
             render={({ field }) => {
-              const providerDefaults = newProvider ? getProviderDefaults(newProvider) : { apiKeyRequired: true };
+              const providerDefaults = newProvider
+                ? getProviderDefaults(newProvider)
+                : { apiKeyRequired: true };
               return (
                 <FormItem>
                   <FormLabel>
                     VLM API Key
                     {!providerDefaults.apiKeyRequired && (
-                      <span className="text-sm text-muted-foreground ml-2">(Optional for local providers)</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        (Optional for local providers)
+                      </span>
                     )}
                   </FormLabel>
                   <FormControl>
@@ -447,8 +449,8 @@ export function VLMSettings({
                         type={showPassword ? 'text' : 'password'}
                         className="bg-white"
                         placeholder={
-                          providerDefaults.apiKeyRequired 
-                            ? 'Enter VLM API Key' 
+                          providerDefaults.apiKeyRequired
+                            ? 'Enter VLM API Key'
                             : 'Not required for local provider'
                         }
                         {...field}
